@@ -1,0 +1,78 @@
+buildscript{
+  repositories{
+    mavenCentral()
+    mavenLocal()
+  }
+}
+
+allprojects{
+  apply plugin: 'java'
+  apply plugin: 'eclipse'
+  apply plugin: 'idea'
+
+  repositories{
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    mavenLocal()
+  }
+
+//   /** needed to disable Java 8 doclint which throws errors **/
+//   tasks.withType(Javadoc) {
+//     options.addStringOption('Xdoclint:none', '-quiet')
+//   }
+}
+
+ext {
+  projectVersion = '0.2.6'
+  projectGroupId = 'com.github.xaguzman'
+  gdxVersion = '1.5.0'
+  distDir = file('dist/')   
+}
+
+
+subprojects{
+  // Binary Jar
+  jar {
+    destinationDir      = distDir
+  }
+
+  task javadocJar(type: Jar, dependsOn:javadoc){
+    classifier = 'javadoc'
+    from javadoc, sourceSets.main.allSource
+    destinationDir      = distDir
+  }
+
+  task sourcesJar(type: Jar, dependsOn:classes){
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    destinationDir      = distDir
+  }
+
+  buildDir = rootProject.buildDir
+}
+
+project(':pathfinding'){
+  
+  dependencies {
+    testCompile 'junit:junit:4.10'
+  }
+}
+
+project(':gdx-bridge'){
+  
+  dependencies {
+    compile project(":pathfinding")
+   	compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+    testCompile "junit:junit:4.10"
+    testCompile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    testCompile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    testCompile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+  }
+}
+
+tasks.eclipse.doLast {
+    delete ".project"
+}
+
